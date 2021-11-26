@@ -1,5 +1,6 @@
 import pandas as pd
 import time
+from sys import getsizeof
 
 class SequenceAlignment:
 
@@ -87,15 +88,16 @@ class SequenceAlignment:
 
             #2. Gap
             if x-1 > -1 and (M[x-1][y] + self.penalty_gap == current):
-                output_X = "_" + output_X
+                output_X = self.string_X[x-1] + output_X
+                output_Y = '_' + output_Y
                 x-=1
             elif y-1 > -1 and (M[x][y-1] + self.penalty_gap == current):
-                output_Y = "_" + output_Y
+                output_X = '_' + output_X
+                output_Y = self.string_Y[y-1] + output_Y
                 y-=1
 
-        memory = 0
-
-        total_time = time.time() - start_time
+        memory = getsizeof(M)                           #units?
+        total_time = time.time() - start_time           #units?
         return output_X, output_Y, total_time, memory
 
     def generateOutput(self, output_X, output_Y, total_time, memory):
