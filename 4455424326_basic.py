@@ -1,6 +1,7 @@
 import pandas as pd
 import time
-from sys import getsizeof
+import sys
+import os, psutil
 
 class SequenceAlignment:
 
@@ -39,7 +40,6 @@ class SequenceAlignment:
         'Function to generate full string from base string and parameters'
 
         for x in params:
-            #Check for validity of parameter? (x could be more than length of string)
             x = int(x)
             left = base[:x+1]
             right = base[x+1:] if x+1 < len(base) else ''
@@ -96,11 +96,12 @@ class SequenceAlignment:
                 output_Y = self.string_Y[y-1] + output_Y
                 y-=1
 
-        memory = getsizeof(M)                           #units?
-        total_time = time.time() - start_time           #units?
-        return output_X, output_Y, total_time, memory
+        cost = M[m][n]
+        total_time = time.time() - start_time
+        memory = (psutil.Process(os.getpid()).memory_info().rss)//1024
+        return output_X, output_Y, cost, total_time, memory
 
-    def generateOutput(self, output_X, output_Y, total_time, memory):
+    def generateOutput(self, output_X, output_Y, cost, total_time, memory):
         'Function to generate the output file'
 
         lines = []
@@ -114,12 +115,15 @@ class SequenceAlignment:
         else:
             lines += [output_Y[:50] + ' ' + output_Y[len(output_Y)-50:]]
 
-        lines += [str(total_time), str(memory)]
+        lines += [str(cost), str(total_time), str(memory)]
 
         with open('output.txt', 'w') as f:
             f.write('\n'.join(lines))
 
-
-s = SequenceAlignment()
-output_X, output_Y, total_time, memory = s.align()
-s.generateOutput(output_X, output_Y, total_time, memory)
+try:
+    _, filename = sys.argv
+    s = SequenceAlignment(filename)
+except:
+    s = SequenceAlignment()
+output_X, output_Y, cost, total_time, memory = s.align()
+s.generateOutput(output_X, output_Y, cost, total_time, memory)
