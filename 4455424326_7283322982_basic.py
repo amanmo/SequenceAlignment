@@ -2,7 +2,6 @@ import pandas as pd
 import time
 import sys
 import os, psutil
-from memory_profiler import memory_usage
 
 class SequenceAlignment:
 
@@ -127,14 +126,8 @@ if __name__ == '__main__':
     except:
         s = SequenceAlignment()
 
-    #Option 1: Subtraction  (Better Results)
     start_memory = (psutil.Process(os.getpid()).memory_info().rss)//1024
     output_X, output_Y, cost, total_time = s.align()
     memory = (psutil.Process(os.getpid()).memory_info().rss)//1024 - start_memory
-
-    #Option 2: Memory Profiler - Memory Usage
-    # memories, retVal = memory_usage(s.align, retval=True)
-    # output_X, output_Y, cost, total_time = retVal
-    # memory = max(memories)
 
     s.generateOutput(output_X, output_Y, cost, total_time, memory)
