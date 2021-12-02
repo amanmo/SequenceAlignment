@@ -2,6 +2,7 @@ import pandas as pd
 import time
 import sys
 import os, psutil
+from memory_profiler import memory_usage
 
 class SequenceAlignment:
 
@@ -54,32 +55,32 @@ class SequenceAlignment:
         m = len(self.string_X)
         n = len(self.string_Y)
 
-        M = [[float('inf') for _ in range(n+1)] for _ in range(m+1)]
+        self.M = [[float('inf') for _ in range(n+1)] for _ in range(m+1)]
         
         #Base Cases
         for i in range(m+1):
-            M[i][0] = i * self.penalty_gap
+            self.M[i][0] = i * self.penalty_gap
 
         for j in range(n+1):
-            M[0][j] = j * self.penalty_gap
+            self.M[0][j] = j * self.penalty_gap
 
         #Recurrence
         for row in range(1, m+1):
             for col in range(1, n+1):
-                M[row][col] = min(M[row-1][col-1] + self.penalty_alpha[self.string_X[row-1]][self.string_Y[col-1]],
-                                  M[row-1][col] + self.penalty_gap,
-                                  M[row][col-1] + self.penalty_gap)
+                self.M[row][col] = min(self.M[row-1][col-1] + self.penalty_alpha[self.string_X[row-1]][self.string_Y[col-1]],
+                                  self.M[row-1][col] + self.penalty_gap,
+                                  self.M[row][col-1] + self.penalty_gap)
 
-        #Trace backwards from M[m][n]
+        #Trace backwards from self.M[m][n]
         output_X = ''
         output_Y = ''
         x, y = m, n
         while(x!=0 or y!=0):
-            current = M[x][y]
+            current = self.M[x][y]
 
             #Finding how the minimum was obtained
             #1. Mismatch
-            if (x-1 > -1 and y-1 > -1) and (M[x-1][y-1] + self.penalty_alpha[self.string_X[x-1]][self.string_Y[y-1]] == current):
+            if (x-1 > -1 and y-1 > -1) and (self.M[x-1][y-1] + self.penalty_alpha[self.string_X[x-1]][self.string_Y[y-1]] == current):
                 output_X = self.string_X[x-1] + output_X
                 output_Y = self.string_Y[y-1] + output_Y
                 x-=1
@@ -87,19 +88,18 @@ class SequenceAlignment:
                 continue
 
             #2. Gap
-            if x-1 > -1 and (M[x-1][y] + self.penalty_gap == current):
+            if x-1 > -1 and (self.M[x-1][y] + self.penalty_gap == current):
                 output_X = self.string_X[x-1] + output_X
                 output_Y = '_' + output_Y
                 x-=1
-            elif y-1 > -1 and (M[x][y-1] + self.penalty_gap == current):
+            elif y-1 > -1 and (self.M[x][y-1] + self.penalty_gap == current):
                 output_X = '_' + output_X
                 output_Y = self.string_Y[y-1] + output_Y
                 y-=1
 
-        cost = M[m][n]
+        cost = self.M[m][n]
         total_time = time.time() - start_time
-        memory = (psutil.Process(os.getpid()).memory_info().rss)//1024
-        return output_X, output_Y, cost, total_time, memory
+        return output_X, output_Y, cost, total_time
 
     def generateOutput(self, output_X, output_Y, cost, total_time, memory):
         'Function to generate the output file'
@@ -120,10 +120,21 @@ class SequenceAlignment:
         with open('output.txt', 'w') as f:
             f.write('\n'.join(lines))
 
-try:
-    _, filename = sys.argv
-    s = SequenceAlignment(filename)
-except:
-    s = SequenceAlignment()
-output_X, output_Y, cost, total_time, memory = s.align()
-s.generateOutput(output_X, output_Y, cost, total_time, memory)
+if __name__ == '__main__':
+    try:
+        _, filename = sys.argv
+        s = SequenceAlignment(filename)
+    except:
+        s = SequenceAlignment()
+
+    #Option 1: Subtraction  (Better Results)
+    start_memory = (psutil.Process(os.getpid()).memory_info().rss)//1024
+    output_X, output_Y, cost, total_time = s.align()
+    memory = (psutil.Process(os.getpid()).memory_info().rss)//1024 - start_memory
+
+    #Option 2: Memory Profiler - Memory Usage
+    # memories, retVal = memory_usage(s.align, retval=True)
+    # output_X, output_Y, cost, total_time = retVal
+    # memory = max(memories)
+
+    s.generateOutput(output_X, output_Y, cost, total_time, memory)
