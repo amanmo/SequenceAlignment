@@ -1,0 +1,14 @@
+Summary:
+In this project, we explored two different techniques to align a pair of DNA sequences. The basic algorithm uses a dynamic programming approach (Needleman–Wunsch algorithm). Whereas, the efficient algorithm uses a combination of divide and conquer and dynamic programming approaches (Hirschberg algorithm).
+
+Insights and Observations: 
+1. Both the algorithms yield the same alignment cost but might return slightly varying orders of alignment.
+eg. X = ACCTG and Y = ACTG might return the matched Y string as AC_TG or A_CTG
+2. Time complexity: O(mn) for both; where m is the length of the full X string and n is the length of the full Y string.
+3. Space complexity: O(mn) for the basic algorithm and O(min(m, n)) for the efficient algorithm.
+4. For smaller strings, the trade-off of space for time may not seem that substantial. Though, as the input size grows, the space consumed grows rapidly making divide and conquer the obvious choice for larger sequences.
+5. The slope of time complexity for the the efficient algorithm is double that of the basic dynamic programming algorithm, showing that it takes roughly twice the time.
+
+Contributions:
+Aman (4455424326) - Dynamic Programming Algorithm, Memory Calculation, Sequence Generation, Input Parsing, Output Generation, Testing
+Hitesh (7283322982) - Divide and Conquer Algorithm, Memory-Efficient Dynamic Programming, Test Case Generation, Visualization
